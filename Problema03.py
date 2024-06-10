@@ -21,7 +21,7 @@ def limpiar_datos(df):
     return df
 
 def obtener_datos_sunat():
-    # Ejemplo de llamada a la API de SUNAT (deberás ajustar esto a tu caso real)
+    # Ejemplo de llamada a la API de SUNAT
     url = 'https://api.apis.net.pe/v1/tipo-cambio-sunat'
     response = requests.get(url)
     data = response.json()
@@ -35,7 +35,7 @@ def obtener_datos_sunat():
     elif isinstance(data, list):
         df = pd.DataFrame(data)
     else:
-        raise ValueError("Los datos obtenidos de la API no están en un formato compatible.")
+        raise ValueError
 
     return df
 
@@ -45,7 +45,7 @@ def obtener_tipo_cambio():
     url = 'https://api.apis.net.pe/v1/tipo-cambio-sunat'
     response = requests.get(url)
     data = response.json()
-    tipo_cambio = data['venta']  # Usar el valor de venta
+    tipo_cambio = data['venta'] 
     return tipo_cambio
 
 def dolarizar_montos(df, tipo_cambio):
@@ -62,7 +62,7 @@ def transformar_estado(df):
         'Resuelto': 0,
         'En Ejecución': 2
     }
-    if 'estado__ssp' in df.columns:  # Corregido el nombre de la columna
+    if 'estado__ssp' in df.columns: 
         df['estado_puntuado'] = df['estado__ssp'].map(estado_map)
         df['estado__ssp'] = df['estado__ssp'].replace({
             0: 'Resuelto',
@@ -71,12 +71,11 @@ def transformar_estado(df):
             3: 'Concluido'
         })
     else:
-        # Agregar columna estado_puntuado con valores predeterminados si no existe
-        df['estado_puntuado'] = "A"
+        
+        df['estado_puntuado'] = " "
     return df
 
 def manejar_columnas_vacias(df):
-    # Agregar columnas vacías con valores predeterminados si no existen
     columnas_necesarias = ['compra', 'venta', 'origen', 'moneda', 'fecha']
     for col in columnas_necesarias:
         if col not in df.columns:
@@ -92,20 +91,11 @@ df = limpiar_datos(df)
 # Manejar columnas vacías
 df = manejar_columnas_vacias(df)
 
-# Ver columnas después de la limpieza y manejo de columnas vacías
-print("Columnas después de la limpieza y manejo de columnas vacías:", df.columns.tolist())
-
-
-
 # Obtener datos de la API de SUNAT y agregar al DataFrame
 df_sunat = obtener_datos_sunat()
 tipo_cambio = obtener_tipo_cambio()
 df = dolarizar_montos(df,tipo_cambio)
 df = pd.concat([df, df_sunat], ignore_index=True)
-
-# Ver columnas después de agregar datos de SUNAT
-print("Columnas después de agregar datos de SUNAT:", df.columns.tolist())
-
 
 
 # Obtener el tipo de cambio actual
@@ -114,14 +104,10 @@ tipo_cambio = obtener_tipo_cambio()
 # Dolarizar montos
 df = dolarizar_montos(df, tipo_cambio)
 
-# Ver columnas después de dolarizar montos
-print("Columnas después de dolarizar montos:", df.columns.tolist())
 
 # Transformar columna "Estado"
 df = transformar_estado(df)
 
-# Ver columnas después de transformar estado
-print("Columnas después de transformar estado:", df.columns.tolist())
 
-# Guardar el DataFrame procesado en un nuevo archivo Excel en el directorio de usuario
+# Guardar el DataFrame procesado en un nuevo archivo Excel 
 df.to_excel('./data/reactiva_procesado.xlsx', index=False)
